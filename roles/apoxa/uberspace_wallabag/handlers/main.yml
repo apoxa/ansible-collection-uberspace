@@ -1,0 +1,6 @@
+---
+
+- name: Run wallabag install.
+  ansible.builtin.shell:
+    cmd: php bin/console wallabag:install --env=prod -n
+    chdir: "{{ uberspace_wallabag__document_root }}"

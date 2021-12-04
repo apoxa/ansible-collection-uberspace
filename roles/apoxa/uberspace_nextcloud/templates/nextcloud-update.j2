@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+## {{ ansible_managed }}
+## Updater automatically works in maintenance:mode.
+## Use the Uberspace backup system for files and database if you need to roll back.
+## The Nextcloud updater creates backups only to safe base and app code data and config files
+## so it takes ressources you might need for your productive data.
+## Deactivate NC-updater Backups with --no-backup (works from 19.0.4, 18.0.10 and 17.0.10)
+php "{{ uberspace_nextcloud__document_root }}/updater/updater.phar" -vv --no-backup --no-interaction
+
+## re-enable maintenance mode for occ commands
+php "{{ uberspace_nextcloud__document_root }}/occ" maintenance:mode --on
+
+## database optimisations
+## The following command works from Nextcloud 20.
+## remove '#' so it is working
+php "{{ uberspace_nextcloud__document_root }}/occ" db:add-missing-primary-keys --no-interaction
+php "{{ uberspace_nextcloud__document_root }}/occ" db:add-missing-columns --no-interaction
+php "{{ uberspace_nextcloud__document_root }}/occ" db:add-missing-indices --no-interaction
+php "{{ uberspace_nextcloud__document_root }}/occ" db:convert-filecache-bigint --no-interaction
+
+php "{{ uberspace_nextcloud__document_root }}/occ" app:update --all
+php "{{ uberspace_nextcloud__document_root }}/occ" maintenance:mode --off
+/usr/sbin/restorecon -R "{{ uberspace_nextcloud__document_root }}"

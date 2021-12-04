@@ -1,0 +1,5 @@
+[program:redis]
+command=redis-server %(ENV_HOME)s/.redis/conf
+directory=%(ENV_HOME)s/.redis
+autostart={{ 'yes' if uberspace_redis__enable else 'no' }}
+autorestart={{ 'yes' if uberspace_redis__enable else 'no' }}

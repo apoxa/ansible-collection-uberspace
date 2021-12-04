@@ -1,0 +1,5 @@
+---
+
+- name: uberspace_miniflux | Create new postgres user.
+  community.general.postgresql_user:
+    name: miniflux

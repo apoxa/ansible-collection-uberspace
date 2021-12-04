@@ -1,0 +1,16 @@
+---
+uberspace_nextcloud__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
+uberspace_nextcloud__release_url: https://download.nextcloud.com/server/releases/latest.tar.bz2
+uberspace_nextcloud__database_name: "{{ ansible_facts.user_id }}_nextcloud"
+uberspace_nextcloud__admin_user: "{{ ansible_facts.user_id }}"
+uberspace_nextcloud__admin_password: "ChangeThisSuperSecretPassword"
+uberspace_nextcloud__data_dir: "{{ ansible_env.HOME }}/nextcloud-data"
+uberspace_nextcloud__trusted_domain: "{{ ansible_facts.user_id }}.uber.space"
+uberspace_nextcloud__mail_domain: "uber.space"
+uberspace_nextcloud__mail_from_address: "{{ ansible_facts.user_id }}"
+uberspace_nextcloud__mail_smtpmode: "sendmail"
+uberspace_nextcloud__mail_sendmailmode: "pipe"
+uberspace_nextcloud__url_rewriting: True
+uberspace_nextcloud__default_phone_region: "DE"
+uberspace_nextcloud__use_redis: True
+uberspace_nextcloud__redis_timeout: 1.5

@@ -1,0 +1,390 @@
+---
+
+- name: uberspace_nextcloud | Get current PHP version.
+  ansible.builtin.command: uberspace tools version show php
+  register: uberspace_php_version_result
+  failed_when: uberspace_php_version_result.rc != 0
+  changed_when: false
+
+- name: uberspace_nextcloud | Parse PHP version output.
+  ansible.builtin.set_fact:
+    uberspace_php_version_inuse: "{{ uberspace_php_version_result.stdout | regex_search(regex, '\\1') | first }}"
+  vars:
+    regex: "Using 'PHP' version: '([^']+)'"
+  failed_when: not uberspace_php_version_inuse
+
+- name: uberspace_nextcloud | Set correct PHP version.
+  ansible.builtin.shell: >
+    uberspace tools version use php {{ uberspace_nextcloud__php_version }}
+  when: uberspace_php_version_inuse is version(uberspace_nextcloud__php_version, '!=')
+
+- name: uberspace_nextcloud | Get MySQL password.
+  ansible.builtin.command: my_print_defaults client
+  register: my_defaults_result
+  failed_when: my_defaults_result.rc != 0
+  changed_when: false
+  no_log: True
+
+- name: uberspace_nextcloud | Parse MySQL password.
+  ansible.builtin.set_fact:
+    uberspace_mysql_password: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
+  vars:
+    regex: "--password=(.*)"
+  failed_when: not uberspace_mysql_password
+  no_log: True
+
+- name: uberspace_nextcloud | Configure PHP OPcache.
+  ansible.builtin.template:
+    src: php.d/opcache.ini.j2
+    dest: ~/etc/php.d/opcache.ini
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  notify:
+    - Restart PHP service.
+
+- name: uberspace_nextcloud | Configure PHP APCu.
+  ansible.builtin.template:
+    src: php.d/apcu.ini.j2
+    dest: ~/etc/php.d/apcu.ini
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  notify:
+    - Restart PHP service.
+
+- name: uberspace_nextcloud | Set PHP memory limit.
+  ansible.builtin.template:
+    src: php.d/memory_limit.ini.j2
+    dest: ~/etc/php.d/memory_limit.ini
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  notify:
+    - Restart PHP service.
+
+- name: uberspace_nextcloud | Configure PHP output buffering.
+  ansible.builtin.template:
+    src: php.d/output_buffering.ini.j2
+    dest: ~/etc/php.d/output_buffering.ini
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  notify:
+    - Restart PHP service.
+
+- name: uberspace_nextcloud | Flush handlers.
+  ansible.builtin.meta: flush_handlers
+
+- name: uberspace_nextcloud | Download latest Nextcloud to docroot.
+  ansible.builtin.unarchive:
+    src: "{{ uberspace_nextcloud__release_url }}"
+    dest: "{{ uberspace_nextcloud__document_root }}"
+    creates: "{{ uberspace_nextcloud__document_root }}/index.php"
+    remote_src: True
+    extra_opts:
+      - --strip-components=1
+
+- name: uberspace_nextcloud | Create database for Nextcloud.
+  community.mysql.mysql_db:
+    name: "{{ uberspace_nextcloud__database_name }}"
+    login_user: "{{ ansible_facts.user_id }}"
+    login_password: "{{ uberspace_mysql_password }}"
+    state: present
+
+- name: uberspace_nextcloud | Run Nextcloud installer script.
+  ansible.builtin.shell:
+    cmd: >
+      php occ maintenance:install
+      --admin-user "{{ uberspace_nextcloud__admin_user }}"
+      --admin-pass "{{ uberspace_nextcloud__admin_password }}"
+      --database "mysql"
+      --database-name "{{ uberspace_nextcloud__database_name }}"
+      --database-user "{{ ansible_facts.user_id }}"
+      --database-pass "{{ uberspace_mysql_password }}"
+      --data-dir "{{ uberspace_nextcloud__data_dir }}"
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+    creates: "{{ uberspace_nextcloud__document_root }}/config/config.php"
+  no_log: true
+  register: uberspace_nextcloud__install_result
+  failed_when: uberspace_nextcloud__install_result.changed and (uberspace_nextcloud__install_result.rc != 0 or uberspace_nextcloud__install_result.stdout != "Nextcloud was successfully installed")
+
+- name: uberspace_nextcloud | Get current trusted domain.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get trusted_domains
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__trusted_domains_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__trusted_domains_result.rc != 0
+
+- name: uberspace_nextcloud | Set list of trusted domains.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set trusted_domains 0 --value={{ uberspace_nextcloud__trusted_domain }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__trusted_domains_result.stdout != uberspace_nextcloud__trusted_domain
+
+- name: uberspace_nextcloud | Get current CLI URL.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get overwrite.cli.url
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__cli_url_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__cli_url_result.rc != 0
+
+- name: uberspace_nextcloud | Set CLI URL in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set overwrite.cli.url --value=https://{{ uberspace_nextcloud__trusted_domain }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__cli_url_result.stdout != "https://"+uberspace_nextcloud__trusted_domain
+
+- name: uberspace_nextcloud | Link logfiles for easier access.
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/logs/{{ item }}"
+    src: "{{ uberspace_nextcloud__data_dir }}/{{ item }}"
+    state: link
+    force: True # updater.log may not exist, but the link can be created
+    follow: False # updater.log may not exist, but the link can be created
+  loop:
+    - nextcloud.log
+    - updater.log
+
+- name: uberspace_nextcloud | Get Nextcloud mail domain.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get mail_domain
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__mail_domain_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__mail_domain_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set mail domain in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set mail_domain --value={{ uberspace_nextcloud__mail_domain }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__mail_domain_result.stdout != uberspace_nextcloud__mail_domain
+
+- name: uberspace_nextcloud | Get Nextcloud mail from address.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get mail_from_address
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__mail_from_address_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__mail_from_address_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set mail from address in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set mail_from_address --value={{ uberspace_nextcloud__mail_from_address }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__mail_from_address_result.stdout != uberspace_nextcloud__mail_from_address
+
+- name: uberspace_nextcloud | Get Nextcloud mail smtpmode.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get mail_smtpmode
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__mail_smtpmode_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__mail_smtpmode_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set mail smtpmode in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set mail_smtpmode --value={{ uberspace_nextcloud__mail_smtpmode }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__mail_smtpmode_result.stdout != uberspace_nextcloud__mail_smtpmode
+
+- name: uberspace_nextcloud | Get Nextcloud mail sendmailmode.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get mail_sendmailmode
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__mail_sendmailmode_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__mail_sendmailmode_result.rc not in [0,1]
+  when: uberspace_nextcloud__mail_smtpmode == "sendmail"
+
+- name: uberspace_nextcloud | Set mail sendmailmode in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set mail_sendmailmode --value={{ uberspace_nextcloud__mail_sendmailmode }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__mail_smtpmode == "sendmail" and
+        uberspace_nextcloud__mail_sendmailmode_result.stdout != uberspace_nextcloud__mail_sendmailmode
+
+- name: uberspace_nextcloud | Get Nextcloud Rewrite Base.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get htaccess.RewriteBase
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__htaccess_rewritebase_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__htaccess_rewritebase_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set RewriteBase in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set htaccess.RewriteBase --value='/'
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: uberspace_nextcloud__url_rewriting and
+        uberspace_nextcloud__htaccess_rewritebase_result.rc == 1
+  notify: Rewrite Nextcloud htaccess.
+
+- name: uberspace_nextcloud | Unset RewriteBase in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:delete htaccess.RewriteBase
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: not uberspace_nextcloud__url_rewriting and
+        uberspace_nextcloud__htaccess_rewritebase_result.rc == 0
+  notify: Rewrite Nextcloud htaccess.
+
+- name: uberspace_nextcloud | Create Cronjob.
+  ansible.builtin.cron:
+    job: "php -f {{ uberspace_nextcloud__document_root }}/cron.php > {{ ansible_env.HOME }}/logs/nextcloud-cron.log 2>&1"
+    name: "Run Nextcloud jobs"
+    minute: "*/5"
+    state: present
+
+- name: uberspace_nextcloud | Get current background job mode.
+  community.mysql.mysql_query:
+    login_db: "{{ uberspace_nextcloud__database_name }}"
+    query: SELECT configvalue FROM oc_appconfig WHERE configkey = %s
+    positional_args:
+      - backgroundjobs_mode
+  register: uberspace_backgroundjob_mode
+  changed_when: False
+
+- name: uberspace_nextcloud | Configure nextcloud to use cron for background tasks.
+  ansible.builtin.shell:
+    cmd: >
+      php occ background:cron
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_backgroundjob_mode.query_result.0.0.configvalue | default()) != 'cron'
+
+- name: uberspace_nextcloud | Get Nextcloud memcache setting.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get memcache.local
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__memcache_local_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__memcache_local_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set memcache setting in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set memcache.local --value='\OC\Memcache\APCu'
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__memcache_local_result.stdout | default()) != '\OC\Memcache\APCu'
+
+- name: uberspace_nextcloud | Get Nextcloud default phone region.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get default_phone_region
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__default_phone_region_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__default_phone_region_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Set default phone region in Nextcloud.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set default_phone_region --value={{ uberspace_nextcloud__default_phone_region }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__default_phone_region_result.stdout | default()) != uberspace_nextcloud__default_phone_region
+
+- name: uberspace_nextcloud | Get current redis host configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get redis host
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__redis_host_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__default_phone_region_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure redis host.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set redis host --value="{{ ansible_env.HOME }}/.redis/sock"
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__redis_host_result.stdout | default()) != "{{ ansible_env.HOME }}/.redis/sock"
+
+- name: uberspace_nextcloud | Get current redis port configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get redis port
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__redis_port_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__redis_port_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure redis port.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set redis port --value=0
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__redis_port_result.stdout | default()) != "0"
+
+- name: uberspace_nextcloud | Get current redis timeout configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get redis timeout
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__redis_timeout_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__redis_timeout_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure redis timeout.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set redis timeout --value={{ uberspace_nextcloud__redis_timeout }}
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__redis_timeout_result.stdout | default()) != "{{ uberspace_nextcloud__redis_timeout }}"
+
+- name: uberspace_nextcloud | Get current filelocking configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get filelocking.enabled
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__filelocking_enabled_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__filelocking_enabled_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure Nextcloud filelocking
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set filelocking.enabled --value='true'
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__filelocking_enabled_result.stdout | default()) != 'true'
+
+- name: uberspace_nextcloud | Get current memcache locking configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get memcache.locking
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__memcache_locking_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__memcache_locking_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure Nextcloud memcache locking.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set memcache.locking --value='\OC\Memcache\Redis'
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__memcache_locking_result.stdout | default()) != '\OC\Memcache\Redis'
+
+- name: uberspace_nextcloud | Get current memcache distributed configuration.
+  ansible.builtin.shell:
+    cmd: php occ config:system:get memcache.distributed
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  register: uberspace_nextcloud__memcache_distributed_result
+  changed_when: False
+  failed_when: uberspace_nextcloud__memcache_distributed_result.rc not in [0,1]
+
+- name: uberspace_nextcloud | Configure Nextcloud memcache distributed.
+  ansible.builtin.shell:
+    cmd: >
+      php occ config:system:set memcache.distributed --value='\OC\Memcache\Redis'
+    chdir: "{{ uberspace_nextcloud__document_root }}"
+  when: (uberspace_nextcloud__memcache_distributed_result.stdout | default()) != '\OC\Memcache\Redis'
+
+- name: uberspace_nextcloud | Place Nextcloud update script in $HOME/bin.
+  ansible.builtin.template:
+    src: nextcloud-update.j2
+    dest: ~/bin/nextcloud-update
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755

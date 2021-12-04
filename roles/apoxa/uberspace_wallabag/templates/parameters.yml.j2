@@ -1,0 +1,42 @@
+# This file is auto-generated during the composer install
+parameters:
+    database_driver: pdo_mysql
+    database_host: localhost
+    database_port: 3306
+    database_name: {{ uberspace_wallabag__database_name }}
+    database_user: {{ ansible_facts.user_id }}
+    database_password: '{{ uberspace_mysql_password }}'
+    database_path: null
+    database_socket: null
+    database_table_prefix: wallabag_
+    database_charset: utf8mb4
+    domain_name: 'https://{{ uberspace_wallabag__domain_name }}'
+    mailer_transport: smtp
+    mailer_user: {{ uberspace_wallabag__mailer_user }}
+    mailer_password: '{{ uberspace_wallabag__mailer_password }}'
+    mailer_host: {{ uberspace_wallabag__mailer_host }}
+    mailer_port: {{ uberspace_wallabag__mailer_port }}
+    mailer_encryption: null
+    mailer_auth_mode: null
+    locale: {{ uberspace_wallabag__locale }}
+    secret: {{ uberspace_wallabag__secret }}
+    twofactor_auth: {{ uberspace_wallabag__twofactor_auth }}
+    twofactor_sender: {{ uberspace_wallabag__twofactor_sender }}
+    fosuser_registration: {{ uberspace_wallabag__fosuser_registration }}
+    fosuser_confirmation: {{ uberspace_wallabag__fosuser_confirmation }}
+    fos_oauth_server_access_token_lifetime: 3600
+    fos_oauth_server_refresh_token_lifetime: 1209600
+    from_email: {{ uberspace_wallabag__from_mail }}
+    rss_limit: 50
+    rabbitmq_host: localhost
+    rabbitmq_port: 5672
+    rabbitmq_user: guest
+    rabbitmq_password: guest
+    rabbitmq_prefetch_count: 10
+    redis_scheme: {{ uberspace_wallabag__redis_scheme | d('null') }}
+    redis_host: {{ redis_host | d('null') }}
+    redis_port: {{ redis_port | d('null') }}
+    redis_path: {{ uberspace_wallabag__redis_path | d('null') }}
+    redis_password: {{ redis_password | d('null') }}
+    sentry_dsn: {{ sentry_dsn | d('null') }}
+    server_name: {{ uberspace_wallabag__domain_name }}
