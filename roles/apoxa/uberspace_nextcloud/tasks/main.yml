@@ -294,7 +294,7 @@
   ansible.builtin.command:
     cmd: php occ config:system:set redis host --value="{{ ansible_env.HOME }}/.redis/sock"
     chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__redis_host_result.stdout | default()) != "{{ ansible_env.HOME }}/.redis/sock"
+  when: (uberspace_nextcloud__redis_host_result.stdout | default()) != ansible_env.HOME ~ '/.redis/sock'
 
 - name: uberspace_nextcloud | Get current redis port configuration.
   ansible.builtin.command:
@@ -319,10 +319,10 @@
   failed_when: uberspace_nextcloud__redis_timeout_result.rc not in [0,1]
 
 - name: uberspace_nextcloud | Configure redis timeout.
-  ansible.builtin.cinnabd:
+  ansible.builtin.command:
     cmd: php occ config:system:set redis timeout --value={{ uberspace_nextcloud__redis_timeout }}
     chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__redis_timeout_result.stdout | default()) != "{{ uberspace_nextcloud__redis_timeout }}"
+  when: (uberspace_nextcloud__redis_timeout_result.stdout | default()) != uberspace_nextcloud__redis_timeout
 
 - name: uberspace_nextcloud | Get current filelocking configuration.
   ansible.builtin.command:
