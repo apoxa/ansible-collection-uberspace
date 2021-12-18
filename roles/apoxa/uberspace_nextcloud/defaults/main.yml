@@ -1,5 +1,5 @@
 ---
-uberspace_nextcloud__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
+uberspace_nextcloud__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
 uberspace_nextcloud__release_url: https://download.nextcloud.com/server/releases/latest.tar.bz2
 uberspace_nextcloud__database_name: "{{ ansible_facts.user_id }}_nextcloud"
 uberspace_nextcloud__admin_user: "{{ ansible_facts.user_id }}"

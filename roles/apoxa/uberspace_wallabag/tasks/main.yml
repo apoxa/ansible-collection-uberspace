@@ -7,7 +7,7 @@
   changed_when: false
   no_log: True
 
-- name: uberspace_wallabag | Parse MySQL password.
+- name: uberspace_wallabag | Parse MySQL password.
   ansible.builtin.set_fact:
     uberspace_mysql_password: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
   vars:
@@ -15,14 +15,14 @@
   failed_when: not uberspace_mysql_password
   no_log: True
 
-- name: uberspace_wallabag | Create database for Wallabag.
+- name: uberspace_wallabag | Create database for Wallabag.
   community.mysql.mysql_db:
-    name: "{{ uberspace_wallabag__database_name }}"
+    name: "{{ uberspace_wallabag__database_name }}"
     login_user: "{{ ansible_facts.user_id }}"
     login_password: "{{ uberspace_mysql_password }}"
     state: present
 
-- name: uberspace_wallabag | Clone wallabag into Document Root.
+- name: uberspace_wallabag | Clone wallabag into Document Root.
   ansible.builtin.git:
     repo: "{{ uberspace_wallabag__repository }}"
     dest: "{{ uberspace_wallabag__document_root }}"
@@ -40,13 +40,13 @@
   notify: 
     - Run wallabag install.
 
-- name: uberspace_wallabag | Remove cache.
+- name: uberspace_wallabag | Remove cache.
   ansible.builtin.file:
     path: "{{ uberspace_wallabag__document_root }}/var/cache"
     state: absent
   no_log: True
 
-- name: uberspace_wallabag | Run composer.
+- name: uberspace_wallabag | Run composer.
   ansible.builtin.shell:
     cmd: SYMFONY_ENV=prod composer install --no-dev -o --prefer-dist
     chdir: "{{ uberspace_wallabag__document_root }}"

@@ -1,5 +1,5 @@
 ---
-uberspace_wallabag__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
+uberspace_wallabag__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
 uberspace_wallabag__repository: "https://github.com/wallabag/wallabag.git"
 uberspace_wallabag__repository_version: "master"
 uberspace_wallabag__database_name: "{{ ansible_facts.user_id }}_wallabag"

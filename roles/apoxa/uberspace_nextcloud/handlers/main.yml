@@ -5,4 +5,4 @@
 - name: Rewrite Nextcloud htaccess.
   ansible.builtin.command: php occ maintenance:update:htaccess
   args:
-    chdir: "{{ uberspace_nextcloud__document_root }}"
+    chdir: "{{ uberspace_nextcloud__document_root }}"
