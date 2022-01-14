@@ -7,10 +7,11 @@ parameters:
     database_user: {{ uberspace_mysql_user }}
     database_password: '{{ uberspace_mysql_password }}'
     database_path: null
-    database_socket: null
     database_table_prefix: wallabag_
+    database_socket: null
     database_charset: utf8mb4
     domain_name: 'https://{{ uberspace_wallabag__domain_name }}'
+    server_name: {{ uberspace_wallabag__domain_name }}
     mailer_transport: smtp
     mailer_user: {{ uberspace_wallabag__mailer_user }}
     mailer_password: '{{ uberspace_wallabag__mailer_password }}'
@@ -39,4 +40,3 @@ parameters:
     redis_path: {{ uberspace_wallabag__redis_path | d('null') }}
     redis_password: {{ redis_password | d('null') }}
     sentry_dsn: {{ sentry_dsn | d('null') }}
-    server_name: {{ uberspace_wallabag__domain_name }}

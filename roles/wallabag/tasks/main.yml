@@ -17,7 +17,6 @@
     repo: "{{ uberspace_wallabag__repository }}"
     dest: "{{ uberspace_wallabag__document_root }}"
     version: "{{ uberspace_wallabag__repository_version }}"
-    update: False
 
 - name: Write parameter file.
   ansible.builtin.template:
