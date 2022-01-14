@@ -1,11 +1,11 @@
 ---
-- name: uberspace_domain | Read current list of domains.
+- name: Read current list of domains.
   command: uberspace web domain list
   register: uberspace_web_domain_result
   failed_when: uberspace_web_domain_result.rc != 0
   changed_when: false
 
-- name: uberspace_domain | Update list of domains.
+- name: Update list of domains.
   shell: >
     uberspace web domain
     {{ 'add' if (item.state | default('present')).lower() == 'present' else '' }}
@@ -16,7 +16,7 @@
     ((item.state | default('present')).lower() == 'absent' and item.domain in uberspace_web_domain_result.stdout_lines)
   loop: "{{ uberspace_domain__domains + ([{'domain': uberspace_domain__domain, 'state': uberspace_domain__state}] if uberspace_domain__domain else []) }}"
 
-- name: uberspace_domain | Create Document Roots.
+- name: Create Document Roots.
   file:
     path: "/var/www/virtual/{{ ansible_facts.user_id }}/{{ item.domain }}"
     state: directory

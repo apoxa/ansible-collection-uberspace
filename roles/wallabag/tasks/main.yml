@@ -1,25 +1,25 @@
 ---
 
-- name: uberspace_wallabag | Get MySQL password.
+- name: Get MySQL password.
   include_role:
     name: mysql
     tasks_from: get_password
 
-- name: uberspace_wallabag | Create database for Wallabag.
+- name: Create database for Wallabag.
   community.mysql.mysql_db:
     name: "{{ uberspace_wallabag__database_name }}"
     login_user: "{{ ansible_facts.user_id }}"
     login_password: "{{ uberspace_mysql_password }}"
     state: present
 
-- name: uberspace_wallabag | Clone wallabag into Document Root.
+- name: Clone wallabag into Document Root.
   ansible.builtin.git:
     repo: "{{ uberspace_wallabag__repository }}"
     dest: "{{ uberspace_wallabag__document_root }}"
     version: "{{ uberspace_wallabag__repository_version }}"
     update: False
 
-- name: uberspace_wallabag | Write parameter file.
+- name: Write parameter file.
   ansible.builtin.template:
     src: parameters.yml.j2
     dest: "{{ uberspace_wallabag__document_root }}/app/config/parameters.yml"
@@ -30,18 +30,18 @@
   notify:
     - Run wallabag install.
 
-- name: uberspace_wallabag | Remove cache.
+- name: Remove cache.
   ansible.builtin.file:
     path: "{{ uberspace_wallabag__document_root }}/var/cache"
     state: absent
   no_log: True
 
-- name: uberspace_wallabag | Run composer.
+- name: Run composer.
   ansible.builtin.shell:
     cmd: SYMFONY_ENV=prod composer install --no-dev -o --prefer-dist
     chdir: "{{ uberspace_wallabag__document_root }}"
 
-- name: uberspace_wallabag | Configure webserver for rewrites.
+- name: Configure webserver for rewrites.
   template:
     src: htaccess.j2
     dest: "{{ uberspace_wallabag__document_root }}/.htaccess"

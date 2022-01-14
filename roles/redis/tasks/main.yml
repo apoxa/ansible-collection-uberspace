@@ -1,6 +1,6 @@
 ---
 
-- name: uberspace_redis | Ensure $HOME/.redis exists.
+- name: Ensure $HOME/.redis exists.
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.redis"
     state: directory
@@ -8,7 +8,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: 0755
 
-- name: uberspace_redis | Create redis configuration.
+- name: Create redis configuration.
   ansible.builtin.template:
     src: redis_conf.j2
     dest: "{{ ansible_env.HOME }}/.redis/conf"
@@ -16,7 +16,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: 0644
 
-- name: uberspace_redis | Create redis daemon configuration.
+- name: Create redis daemon configuration.
   ansible.builtin.template:
     src: redis_daemon.ini.j2
     dest: "{{ ansible_env.HOME }}/etc/services.d/redis.ini"
@@ -24,7 +24,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: 0644
 
-- name: uberspace_redis | Set redis daemon to desired state..
+- name: Set redis daemon to desired state..
   community.general.supervisorctl:
     name: redis
     state: "{{ 'present' if uberspace_redis__enable else 'absent' }}"
