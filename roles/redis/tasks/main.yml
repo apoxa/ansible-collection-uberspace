@@ -24,7 +24,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: 0644
 
-- name: Set redis daemon to desired state..
+- name: Set redis daemon to desired state.
   community.general.supervisorctl:
     name: redis
     state: "{{ 'present' if uberspace_redis__enable else 'absent' }}"
