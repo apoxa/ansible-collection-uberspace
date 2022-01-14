@@ -1,0 +1,28 @@
+<?php
+/* {{ ansible_managed }} */
+define( 'YOURLS_DB_USER', '{{ ansible_facts.user_id }}' );
+define( 'YOURLS_DB_PASS', '{{ uberspace_mysql_password }}' );
+define( 'YOURLS_DB_NAME', '{{ uberspace_yourls__database_name }}' );
+define( 'YOURLS_DB_HOST', 'localhost' );
+define( 'YOURLS_DB_PREFIX', 'yourls_' );
+define( 'YOURLS_SITE', 'https://{{ uberspace_yourls__domain }}' );
+define( 'YOURLS_LANG', '{{ uberspace_yourls__language }}' );
+define( 'YOURLS_UNIQUE_URLS', {{ uberspace_yourls__unique_urls | bool }} );
+define( 'YOURLS_PRIVATE', {{ uberspace_yourls__private | bool }} );
+define( 'YOURLS_COOKIEKEY', '{{ uberspace_yourls__cookiekey }}' );
+$yourls_user_passwords = [
+    {% for user in uberspace_yourls__users %}
+    {%- set salt = user.salt | d(99999 | random(start=10000, seed=inventory_hostname)) | string %}
+    '{{ user.username }}' => 'md5:{{ salt }}:{{ (salt + user.password) | md5 }}',
+    {% endfor %}
+];
+define( 'YOURLS_URL_CONVERT', {{ uberspace_yourls__url_shortening_method | int }} );
+define( 'YOURLS_DEBUG', {{ uberspace_yourls__debug | bool }} );
+
+/**
+* Reserved keywords (so that generated URLs won't match them)
+* Define here negative, unwanted or potentially misleading keywords.
+*/
+$yourls_reserved_URL = [
+	'porn', 'faggot', 'sex', 'nigger', 'fuck', 'cunt', 'dick',
+];

@@ -1,0 +1,42 @@
+---
+
+- name: Get MySQL password.
+  include_role:
+    name: mysql
+    tasks_from: get_password
+
+- name: Download YOURLS to docroot.
+  ansible.builtin.unarchive:
+    src: "{{ uberspace_yourls__release_url }}"
+    dest: "{{ uberspace_yourls__document_root }}"
+    creates: "{{ uberspace_yourls__document_root }}/admin/index.php"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+
+- name: Create database for YOURLS.
+  community.mysql.mysql_db:
+    name: "{{ uberspace_yourls__database_name }}"
+    login_user: "{{ ansible_facts.user_id }}"
+    login_password: "{{ uberspace_mysql_password }}"
+    state: present
+
+- name: Place configuration file.
+  ansible.builtin.template:
+    src: templates/config.php.j2
+    dest: "{{ uberspace_yourls__document_root }}/user/config.php"
+    owner: "{{ ansible_facts.user_id }}"
+    group: "{{ ansible_facts.user_id }}"
+    mode: "0644"
+
+- name: Install Pseudonymize plugin. # noqa git-latest
+  ansible.builtin.git:
+    repo: "{{ uberspace_yourls__pseudonymize_repo }}"
+    dest: "{{ uberspace_yourls__document_root }}/user/plugins/yourls-pseudonymize"
+
+- name: Install additional plugins.
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ uberspace_yourls__document_root }}/user/plugins/{{ item.repo | basename }}"
+    version: "{{ item.version | default(omit) }}"
+  loop: "{{ uberspace_yourls__additional_plugins }}"
