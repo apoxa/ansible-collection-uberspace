@@ -26,15 +26,11 @@
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
     mode: "0664"
+  register: wallabag_parameters
   no_log: True
   notify:
     - Run wallabag install.
-
-- name: Remove cache.
-  ansible.builtin.file:
-    path: "{{ uberspace_wallabag__document_root }}/var/cache"
-    state: absent
-  no_log: True
+    - Clear wallabag cache.
 
 - name: Run composer.
   ansible.builtin.shell:

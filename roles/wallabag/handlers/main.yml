@@ -4,3 +4,8 @@
   ansible.builtin.shell:
     cmd: php bin/console wallabag:install --env=prod -n
     chdir: "{{ uberspace_wallabag__document_root }}"
+
+- name: Clear wallabag cache.
+  ansible.builtin.command:
+    cmd: php bin/console cache:clear -e=prod
+    chdir: "{{ uberspace_wallabag__document_root }}"
