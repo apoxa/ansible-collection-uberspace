@@ -1,19 +1,9 @@
 ---
 
 - name: uberspace_wallabag | Get MySQL password.
-  ansible.builtin.command: my_print_defaults client
-  register: my_defaults_result
-  failed_when: my_defaults_result.rc != 0
-  changed_when: false
-  no_log: True
-
-- name: uberspace_wallabag | Parse MySQL password.
-  ansible.builtin.set_fact:
-    uberspace_mysql_password: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
-  vars:
-    regex: "--password=(.*)"
-  failed_when: not uberspace_mysql_password
-  no_log: True
+  include_role:
+    name: mysql
+    tasks_from: get_password
 
 - name: uberspace_wallabag | Create database for Wallabag.
   community.mysql.mysql_db:
