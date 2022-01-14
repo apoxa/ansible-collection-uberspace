@@ -8,6 +8,14 @@
   changed_when: false
   no_log: True
 
+- name: Get MySQL user from my_print_defaults.
+  ansible.builtin.set_fact:
+    uberspace_mysql_user: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
+  vars:
+    regex: "--user=(.*)"
+  failed_when: not uberspace_mysql_user
+  no_log: True
+
 - name: Get MySQL password from my_print_defaults.
   ansible.builtin.set_fact:
     uberspace_mysql_password: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"

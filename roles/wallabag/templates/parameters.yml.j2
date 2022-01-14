@@ -4,7 +4,7 @@ parameters:
     database_host: localhost
     database_port: 3306
     database_name: {{ uberspace_wallabag__database_name }}
-    database_user: {{ ansible_facts.user_id }}
+    database_user: {{ uberspace_mysql_user }}
     database_password: '{{ uberspace_mysql_password }}'
     database_path: null
     database_socket: null
