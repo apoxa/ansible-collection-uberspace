@@ -31,10 +31,12 @@
     - Run wallabag install.
     - Clear wallabag cache.
 
-- name: Run composer.
-  ansible.builtin.shell:
-    cmd: SYMFONY_ENV=prod composer install --no-dev -o --prefer-dist
-    chdir: "{{ uberspace_wallabag__document_root }}"
+- name: Install deps with composer.
+  community.general.composer:
+    command: install
+    prefer_dist: true
+    no_scripts: true
+    working_dir: "{{ uberspace_wallabag__document_root }}"
 
 - name: Configure webserver for rewrites.
   template:
@@ -42,4 +44,4 @@
     dest: "{{ uberspace_wallabag__document_root }}/.htaccess"
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
-    mode: "0644"
+    mode: "0664"

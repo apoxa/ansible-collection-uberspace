@@ -19,6 +19,7 @@ tags: ['uberspace']
 # range specifiers can be set and are separated by ','
 dependencies:
   community.mysql: '>=2.1.0'
+  community.general: '>=4.2.0'
 
 repository: https://github.com/apoxa/ansible-uberspace
 issues: https://github.com/apoxa/ansible-uberspace/issues
