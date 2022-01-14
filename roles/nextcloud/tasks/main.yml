@@ -243,20 +243,6 @@
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: (uberspace_backgroundjob_mode.query_result.0.0.configvalue | default()) != 'cron'
 
-- name: Get Nextcloud memcache setting.
-  ansible.builtin.command:
-    cmd: php occ config:system:get memcache.local
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__memcache_local_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__memcache_local_result.rc not in [0,1]
-
-- name: Set memcache setting in Nextcloud.
-  ansible.builtin.command:
-    cmd: php occ config:system:set memcache.local --value='\OC\Memcache\APCu'
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__memcache_local_result.stdout | default()) != '\OC\Memcache\APCu'
-
 - name: Get Nextcloud default phone region.
   ansible.builtin.command:
     cmd: php occ config:system:get default_phone_region
@@ -271,89 +257,22 @@
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: (uberspace_nextcloud__default_phone_region_result.stdout | default()) != uberspace_nextcloud__default_phone_region
 
-- name: Get current redis host configuration.
+- name: Get Nextcloud memcache setting.
   ansible.builtin.command:
-    cmd: php occ config:system:get redis host
+    cmd: php occ config:system:get memcache.local
     chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__redis_host_result
+  register: uberspace_nextcloud__memcache_local_result
   changed_when: False
-  failed_when: uberspace_nextcloud__default_phone_region_result.rc not in [0,1]
+  failed_when: uberspace_nextcloud__memcache_local_result.rc not in [0,1]
 
-- name: Configure redis host.
+- name: Set memcache setting in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set redis host --value="{{ ansible_env.HOME }}/.redis/sock"
+    cmd: php occ config:system:set memcache.local --value='\OC\Memcache\APCu'
     chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__redis_host_result.stdout | default()) != ansible_env.HOME ~ '/.redis/sock'
+  when: (uberspace_nextcloud__memcache_local_result.stdout | default()) != '\OC\Memcache\APCu'
 
-- name: Get current redis port configuration.
-  ansible.builtin.command:
-    cmd: php occ config:system:get redis port
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__redis_port_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__redis_port_result.rc not in [0,1]
-
-- name: Configure redis port.
-  ansible.builtin.command:
-    cmd: php occ config:system:set redis port --value=0
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__redis_port_result.stdout | default()) != "0"
-
-- name: Get current redis timeout configuration.
-  ansible.builtin.command:
-    cmd: php occ config:system:get redis timeout
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__redis_timeout_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__redis_timeout_result.rc not in [0,1]
-
-- name: Configure redis timeout.
-  ansible.builtin.command:
-    cmd: php occ config:system:set redis timeout --value={{ uberspace_nextcloud__redis_timeout }}
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__redis_timeout_result.stdout | default()) != uberspace_nextcloud__redis_timeout
-
-- name: Get current filelocking configuration.
-  ansible.builtin.command:
-    cmd: php occ config:system:get filelocking.enabled
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__filelocking_enabled_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__filelocking_enabled_result.rc not in [0,1]
-
-- name: Configure Nextcloud filelocking
-  ansible.builtin.command:
-    cmd: php occ config:system:set filelocking.enabled --value='true'
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__filelocking_enabled_result.stdout | default()) != 'true'
-
-- name: Get current memcache locking configuration.
-  ansible.builtin.command:
-    cmd: php occ config:system:get memcache.locking
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__memcache_locking_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__memcache_locking_result.rc not in [0,1]
-
-- name: Configure Nextcloud memcache locking.
-  ansible.builtin.command:
-    cmd: php occ config:system:set memcache.locking --value='\OC\Memcache\Redis'
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__memcache_locking_result.stdout | default()) != '\OC\Memcache\Redis'
-
-- name: Get current memcache distributed configuration.
-  ansible.builtin.command:
-    cmd: php occ config:system:get memcache.distributed
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  register: uberspace_nextcloud__memcache_distributed_result
-  changed_when: False
-  failed_when: uberspace_nextcloud__memcache_distributed_result.rc not in [0,1]
-
-- name: Configure Nextcloud memcache distributed.
-  ansible.builtin.command:
-    cmd: php occ config:system:set memcache.distributed --value='\OC\Memcache\Redis'
-    chdir: "{{ uberspace_nextcloud__document_root }}"
-  when: (uberspace_nextcloud__memcache_distributed_result.stdout | default()) != '\OC\Memcache\Redis'
+- include_tasks: redis.yml
+  when: uberspace_nextcloud__use_redis
 
 - name: Place Nextcloud update script in $HOME/bin.
   ansible.builtin.template:
