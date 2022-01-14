@@ -27,7 +27,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: "0664"
   no_log: True
-  notify: 
+  notify:
     - Run wallabag install.
 
 - name: uberspace_wallabag | Remove cache.
