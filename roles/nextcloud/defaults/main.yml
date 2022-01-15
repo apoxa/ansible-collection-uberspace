@@ -14,3 +14,4 @@ uberspace_nextcloud__url_rewriting: True
 uberspace_nextcloud__default_phone_region: "DE"
 uberspace_nextcloud__use_redis: True
 uberspace_nextcloud__redis_timeout: 1.5
+uberspace_nextcloud__use_notify_push: True

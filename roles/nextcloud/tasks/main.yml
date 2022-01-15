@@ -274,6 +274,9 @@
 - include_tasks: redis.yml
   when: uberspace_nextcloud__use_redis
 
+- include_tasks: notify_push.yml
+  when: uberspace_nextcloud__use_notify_push
+
 - name: Place Nextcloud update script in $HOME/bin.
   ansible.builtin.template:
     src: nextcloud-update.j2

@@ -21,3 +21,7 @@ php "{{ uberspace_nextcloud__document_root }}/occ" db:convert-filecache-bigint -
 php "{{ uberspace_nextcloud__document_root }}/occ" app:update --all
 php "{{ uberspace_nextcloud__document_root }}/occ" maintenance:mode --off
 /usr/sbin/restorecon -R "{{ uberspace_nextcloud__document_root }}"
+
+{% if uberspace_nextcloud__use_notify_push %}
+supervisorctl restart notify_push
+{% endif %}
