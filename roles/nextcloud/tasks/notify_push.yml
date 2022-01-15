@@ -39,8 +39,8 @@
 
 - name: Configure web backend for Client Push.
   ansible.builtin.command:
-    cmd: uberspace web backend set /push --http --port 7867
-  when: uberspace_web_backend_list_result.stdout is not regex("^/push http:7867")
+    cmd: uberspace web backend set {{ uberspace_nextcloud__trusted_domain }}/push --http --port 7867
+  when: uberspace_web_backend_list_result.stdout is not regex("^" ~ uberspace_nextcloud__trusted_domain ~ "/push http:7867")
 
 - name: Get current trusted proxies configuration.
   ansible.builtin.command:
