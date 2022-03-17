@@ -23,5 +23,5 @@
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
     mode: 0775
-  when: (item.state | default('present')).lower() == 'present'
+  when: (item.state | default('present')).lower() == 'present' && ( item.create_docroot | default(true) )
   loop: "{{ uberspace_domain__domains + ([{'domain': uberspace_domain__domain, 'state': uberspace_domain__state}] if uberspace_domain__domain else []) }}"
