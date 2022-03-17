@@ -1,0 +1,21 @@
+---
+
+- name: Install plugin {{ item }}.
+  ansible.builtin.command:
+    cmd: "composer require wpackagist-plugin/{{ item }}"
+    chdir: "{{ uberspace_wordpress__root }}"
+    creates: "{{ uberspace_wordpress__root }}/web/app/plugins/{{ item }}"
+
+- name: Check if plugin {{ item }} is active.
+  ansible.builtin.command:
+    cmd: "wp plugin is-active {{ item }}"
+    chdir: "{{ uberspace_wordpress__root }}"
+  changed_when: false
+  failed_when: false
+  register: wordpress_plugin_result
+
+- name: Activate plugin {{ item }}.
+  ansible.builtin.command:
+    cmd: "wp plugin activate {{ item }}"
+    chdir: "{{ uberspace_wordpress__root }}"
+  when: wordpress_plugin_result.rc != 0

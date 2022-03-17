@@ -30,8 +30,5 @@
     state: link
 
 - name: Install plugins.
-  ansible.builtin.command:
-    cmd: "composer require wpackagist-plugin/{{ item }}"
-    chdir: "{{ uberspace_wordpress__root }}"
-    creates: "{{ uberspace_wordpress__root }}/web/app/plugins/{{ item }}"
+  include_tasks: install_plugin.yml
   loop: "{{ uberspace_wordpress__plugins }}"
