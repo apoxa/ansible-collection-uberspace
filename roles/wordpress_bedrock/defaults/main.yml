@@ -1,0 +1,16 @@
+---
+
+uberspace_wordpress__database_name: "{{ ansible_facts.user_id }}_wordpress"
+uberspace_wordpress__root: "/var/www/virtual/{{ ansible_facts.user_id }}/wordpress"
+uberspace_wordpress__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
+uberspace_wordpress__domain: "{{ ansible_facts.user_id }}.uber.space"
+
+# Generate your keys here: https://roots.io/salts.html
+uberspace_wordpress__auth_key: 'generateme'
+uberspace_wordpress__secure_auth_key: 'generateme'
+uberspace_wordpress__logged_in_key: 'generateme'
+uberspace_wordpress__nonce_key: 'generateme'
+uberspace_wordpress__auth_salt: 'generateme'
+uberspace_wordpress__secure_auth_salt: 'generateme'
+uberspace_wordpress__logged_in_salt: 'generateme'
+uberspace_wordpress__nonce_salt: 'generateme'

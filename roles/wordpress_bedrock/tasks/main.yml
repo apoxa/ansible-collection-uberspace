@@ -1,0 +1,30 @@
+---
+
+- name: Get MySQL password.
+  include_role:
+    name: mysql
+    tasks_from: get_login
+
+- name: Create database for wordpress.
+  community.mysql.mysql_db:
+    name: "{{ uberspace_wordpress__database_name }}"
+    state: present
+
+- name: Download bedrock with composer.
+  ansible.builtin.command:
+    cmd: "composer create-project roots/bedrock {{ uberspace_wordpress__root }}"
+    creates: "{{ uberspace_wordpress__root }}"
+
+- name: Configure via .env file.
+  ansible.builtin.template:
+    src: "templates/dot.env.j2"
+    dest: "{{ uberspace_wordpress__root }}/.env"
+    owner: "{{ ansible_facts.user_id }}"
+    group: "{{ ansible_facts.user_id }}"
+    mode: "0640"
+
+- name: Symlink web directory into document root.
+  ansible.builtin.file:
+    src: "{{ uberspace_wordpress__root }}/web"
+    path: "{{ uberspace_wordpress__document_root }}"
+    state: link
