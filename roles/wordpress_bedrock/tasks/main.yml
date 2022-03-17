@@ -28,3 +28,10 @@
     src: "{{ uberspace_wordpress__root }}/web"
     path: "{{ uberspace_wordpress__document_root }}"
     state: link
+
+- name: Install plugins.
+  ansible.builtin.command:
+    cmd: "composer require wpackagist-plugin/{{ item }}"
+    chdir: "{{ uberspace_wordpress__root }}"
+    creates: "{{ uberspace_wordpress__root }}/web/app/plugins/{{ item }}"
+  loop: "{{ uberspace_wordpress__plugins }}"
