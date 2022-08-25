@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+port {{ uberspace_mosquitto__port }}
+allow_anonymous {{ uberspace_mosquitto__anonymous | bool | lower}}
+{% if not uberspace_mosquitto__anonymous %}
+password_file {{ uberspace_mosquitto__configuration_dir }}/{{ uberspace_mosquitto__instance_name }}_passwd
+{% endif %}
+{% if uberspace_mosquitto__secure %}
+cafile /etc/ssl/certs/ca-bundle.crt
+certfile {{ ansible_env.HOME }}/etc/certificates/{{ uberspace_mosquitto__domain }}.crt
+certfile {{ ansible_env.HOME }}/etc/certificates/{{ uberspace_mosquitto__domain }}.key
+{% endif %}

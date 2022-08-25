@@ -1,0 +1,8 @@
+---
+
+uberspace_mosquitto__enable: true
+uberspace_mosquitto__instance_name: mq0
+uberspace_mosquitto__configuration_dir: "{{ ansible_env.HOME }}/etc/mosquitto"
+uberspace_mosquitto__domain: isabell.uber.space
+uberspace_mosquitto__secure: true
+uberspace_mosquitto__anonymous: false

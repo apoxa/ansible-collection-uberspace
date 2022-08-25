@@ -1,0 +1,72 @@
+---
+
+- name: Create folder for saving ports.
+  ansible.builtin.file:
+    state: directory
+    path: "{{ ansible_env.HOME }}/.ports"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+
+- name: Open incoming port for Mosquitto.
+  ansible.builtin.command:
+    cmd: uberspace port add
+    creates: "{{ ansible_env.HOME }}/.ports/mosquitto-{{ uberspace_mosquitto__instance_name }}"
+  register: uberspace_mosquitto__port_add_result
+
+- name: Set port as fact from add command. # noqa no-handler
+  ansible.builtin.set_fact:
+    uberspace_mosquitto__port: "{{ uberspace_mosquitto__port_add_result.stdout | regex_search(regexp, '\\1') | first }}"
+  vars:
+    regexp: 'Port (\d+) will be open for TCP and UDP traffic in a few minutes.'
+  when: uberspace_mosquitto__port_add_result is changed
+
+- name: Save port for idempotency. # noqa no-handler
+  ansible.builtin.copy:
+    content: "{{ uberspace_mosquitto__port }}"
+    dest: "{{ ansible_env.HOME }}/.ports/mosquitto-{{ uberspace_mosquitto__instance_name }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  when: uberspace_mosquitto__port_add_result is changed
+
+- name: Read already opened port from file.
+  ansible.builtin.command:
+    cmd: "cat {{ ansible_env.HOME }}/.ports/mosquitto-{{ uberspace_mosquitto__instance_name }}"
+  register: uberspace_mosquitto__port_read
+  changed_when: false
+  when: uberspace_mosquitto__port_add_result is not changed
+
+- name: Set already opened port from file.
+  ansible.builtin.set_fact:
+    uberspace_mosquitto__port: "{{ uberspace_mosquitto__port_read.stdout }}"
+  when: uberspace_mosquitto__port_add_result is not changed
+
+- name: Create configuration directory for mosquitto.
+  ansible.builtin.file:
+    state: directory
+    path: "{{ uberspace_mosquitto__configuration_dir }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+
+- name: Configure mosquitto instance.
+  ansible.builtin.template:
+    src: "mosquitto.conf.j2"
+    dest: "{{ uberspace_mosquitto__configuration_dir }}/mosquitto-{{ uberspace_mosquitto__instance_name }}.conf"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Setup mosquitto daemon.
+  ansible.builtin.template:
+    src: "supervisorctl.ini.j2"
+    dest: "{{ ansible_env.HOME }}/etc/services.d/mosquitto-{{ uberspace_mosquitto__instance_name }}.ini"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Set redis daemon to desired state.
+  community.general.supervisorctl:
+    name: "mosquitto-{{ uberspace_mosquitto__instance_name }}"
+    state: "{{ 'present' if uberspace_mosquitto__enable else 'absent' }}"
