@@ -16,3 +16,4 @@ uberspace_wordpress__logged_in_salt: 'generateme'
 uberspace_wordpress__nonce_salt: 'generateme'
 
 uberspace_wordpress__plugins: []
+uberspace_wordpress__themes: []

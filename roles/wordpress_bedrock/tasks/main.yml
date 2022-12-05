@@ -32,3 +32,7 @@
 - name: Install plugins.
   include_tasks: install_plugin.yml
   loop: "{{ uberspace_wordpress__plugins }}"
+
+- name: Install themes.
+  include_tasks: install_theme.yml
+  loop: "{{ uberspace_wordpress__themes }}"

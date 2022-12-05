@@ -1,0 +1,7 @@
+---
+
+- name: Install theme {{ item }}.
+  ansible.builtin.command:
+    cmd: "composer require wpackagist-theme/{{ item }}"
+    chdir: "{{ uberspace_wordpress__root }}"
+    creates: "{{ uberspace_wordpress__root }}/web/app/themes/{{ item }}"
