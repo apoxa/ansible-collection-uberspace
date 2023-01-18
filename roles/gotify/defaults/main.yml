@@ -1,0 +1,8 @@
+---
+
+uberspace_gotify__enable: true
+uberspace_gotify__backend_path: /gotify
+uberspace_gotify__installation_directory: "{{ ansible_env.HOME }}/gotify"
+uberspace_gotify__release: "latest"
+uberspace_gotify__url: "https://github.com/gotify/server/releases/{{ uberspace_gotify__release }}/download/gotify-linux-amd64.zip"
+uberspace_gotify__port: 52111

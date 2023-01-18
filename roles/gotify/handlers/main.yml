@@ -1,0 +1,6 @@
+---
+
+- name: Reload gotify.
+  community.general.supervisorctl:
+    name: gotify
+    state: restarted
