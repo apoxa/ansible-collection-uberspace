@@ -1,22 +1,25 @@
 ---
 
-- name: Update list of domains.
-  shell: >
-    uberspace web domain
-    {{ 'add' if (item.state | default('present')).lower() == 'present' else '' }}
-    {{ 'del' if (item.state | default('present')).lower() == 'absent' else '' }}
-    $(idn {{ item.domain }})
-  when:
-    ((item.state | default('present')).lower() == 'present' and item.domain not in ansible_local.users[ansible_user_id].domains) or
-    ((item.state | default('present')).lower() == 'absent' and item.domain in ansible_local.users[ansible_user_id].domains)
-  loop: "{{ uberspace_domain__domains + ([{'domain': uberspace_domain__domain, 'state': uberspace_domain__state}] if uberspace_domain__domain else []) }}"
+- name: Set fact with current configured domains.
+  ansible.builtin.set_fact:
+    uberspace_configured_domains: "{{ ansible_local.users[ansible_user_id].domains | dict2items | map(attribute='key') }}"
+
+- name: Add domains to uberspace.
+  ansible.builtin.shell: uberspace web domain add $(idn {{ item.domain }})
+  when: item.domain not in uberspace_configured_domains
+  loop: "{{ uberspace_domain__domains | selectattr('state', 'equalto', 'present') }}"
+
+- name: Remove domains from uberspace.
+  ansible.builtin.shell: uberspace web domain del $(idn {{ item.domain }})
+  when: item.domain in uberspace_configured_domains
+  loop: "{{ uberspace_domain__domains | selectattr('state', 'equalto', 'absent') }}"
 
 - name: Create Document Roots.
-  file:
+  ansible.builtin.file:
     path: "/var/www/virtual/{{ ansible_user_id }}/{{ item.domain }}"
     state: directory
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_id }}"
     mode: 0775
   when: (item.state | default('present')).lower() == 'present' and ( item.create_docroot | default(true) )
-  loop: "{{ uberspace_domain__domains + ([{'domain': uberspace_domain__domain, 'state': uberspace_domain__state}] if uberspace_domain__domain else []) }}"
+  loop: "{{ uberspace_domain__domains + ([{'domain': uberspace_domain__domain}] if uberspace_domain__domain else []) }}"
