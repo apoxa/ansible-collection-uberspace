@@ -6,7 +6,7 @@
   register: my_defaults_result
   failed_when: my_defaults_result.rc != 0
   changed_when: false
-  no_log: True
+  no_log: true
 
 - name: Get MySQL user from my_print_defaults.
   ansible.builtin.set_fact:
@@ -14,7 +14,7 @@
   vars:
     regex: "--user=(.*)"
   failed_when: not uberspace_mysql_user
-  no_log: True
+  no_log: true
 
 - name: Get MySQL password from my_print_defaults.
   ansible.builtin.set_fact:
@@ -22,4 +22,4 @@
   vars:
     regex: "--password=(.*)"
   failed_when: not uberspace_mysql_password
-  no_log: True
+  no_log: true
