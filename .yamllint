@@ -1,0 +1,20 @@
+---
+extends: default
+
+rules:
+  line-length:
+    max: 180
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  quoted-strings:
+    required: only-when-needed
+    quote-type: double
+    extra-required: ["{{.*}}"]
+
+ignore: |
+  .cache
+  ext
