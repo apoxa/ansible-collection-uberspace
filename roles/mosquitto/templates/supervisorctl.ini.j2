@@ -2,3 +2,4 @@
 command=mosquitto -c %(ENV_HOME)s/etc/mosquitto/mosquitto-{{ uberspace_mosquitto__instance_name }}.conf
 autostart=yes
 autorestart=yes
+startsecs=30
