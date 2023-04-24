@@ -21,10 +21,10 @@ parameters:
     mailer_auth_mode: null
     locale: {{ uberspace_wallabag__locale }}
     secret: {{ uberspace_wallabag__secret }}
-    twofactor_auth: {{ uberspace_wallabag__twofactor_auth }}
+    twofactor_auth: {{ uberspace_wallabag__twofactor_auth | lower }}
     twofactor_sender: {{ uberspace_wallabag__twofactor_sender }}
-    fosuser_registration: {{ uberspace_wallabag__fosuser_registration }}
-    fosuser_confirmation: {{ uberspace_wallabag__fosuser_confirmation }}
+    fosuser_registration: {{ uberspace_wallabag__fosuser_registration | string | lower }}
+    fosuser_confirmation: {{ uberspace_wallabag__fosuser_confirmation | string | lower }}
     fos_oauth_server_access_token_lifetime: 3600
     fos_oauth_server_refresh_token_lifetime: 1209600
     from_email: {{ uberspace_wallabag__from_mail }}
