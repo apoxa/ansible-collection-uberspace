@@ -1,22 +1,8 @@
 ---
-- name: Get current PHP version.
-  ansible.builtin.command:
-    cmd: uberspace tools version show php
-  register: uberspace_php_version_result
-  failed_when: uberspace_php_version_result.rc != 0
-  changed_when: false
-
-- name: Parse PHP version output.
-  ansible.builtin.set_fact:
-    uberspace_php_version_inuse: "{{ uberspace_php_version_result.stdout | regex_search(regex, '\\1') | first }}"
-  vars:
-    regex: "Using 'PHP' version: '([^']+)'"
-  failed_when: not uberspace_php_version_inuse
-
 - name: Set correct PHP version.
   ansible.builtin.command:
     cmd: "uberspace tools version use php {{ uberspace_nextcloud__php_version }}"
-  when: uberspace_php_version_inuse is version(uberspace_nextcloud__php_version, '!=')
+  when: ansible_local.users[ansible_user_id].versions.php is version(uberspace_nextcloud__php_version, '!=')
 
 - name: Get MySQL password.
   include_role:
