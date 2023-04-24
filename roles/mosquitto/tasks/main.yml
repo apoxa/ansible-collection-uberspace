@@ -34,6 +34,7 @@
     cmd: "cat {{ ansible_env.HOME }}/.ports/mosquitto-{{ uberspace_mosquitto__instance_name }}"
   register: uberspace_mosquitto__port_read
   changed_when: false
+  check_mode: false
   when: uberspace_mosquitto__port_add_result is not changed
 
 - name: Set already opened port from file.
