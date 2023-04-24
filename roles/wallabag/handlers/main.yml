@@ -1,5 +1,4 @@
 ---
-
 - name: Run wallabag install.
   ansible.builtin.command:
     cmd: php bin/console wallabag:install --env=prod -n

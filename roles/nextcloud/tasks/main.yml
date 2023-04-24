@@ -1,5 +1,4 @@
 ---
-
 - name: Get current PHP version.
   ansible.builtin.command:
     cmd: uberspace tools version show php
@@ -16,7 +15,7 @@
 
 - name: Set correct PHP version.
   ansible.builtin.command:
-    cmd: uberspace tools version use php {{ uberspace_nextcloud__php_version }}
+    cmd: "uberspace tools version use php {{ uberspace_nextcloud__php_version }}"
   when: uberspace_php_version_inuse is version(uberspace_nextcloud__php_version, '!=')
 
 - name: Get MySQL password.
@@ -30,7 +29,7 @@
     dest: ~/etc/php.d/opcache.ini
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0644
+    mode: "0644"
   notify:
     - Restart PHP service.
 
@@ -40,7 +39,7 @@
     dest: ~/etc/php.d/apcu.ini
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0644
+    mode: "0644"
   notify:
     - Restart PHP service.
 
@@ -50,7 +49,7 @@
     dest: ~/etc/php.d/memory_limit.ini
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0644
+    mode: "0644"
   notify:
     - Restart PHP service.
 
@@ -60,7 +59,7 @@
     dest: ~/etc/php.d/output_buffering.ini
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0644
+    mode: "0644"
   notify:
     - Restart PHP service.
 
@@ -72,7 +71,7 @@
     src: "{{ uberspace_nextcloud__release_url }}"
     dest: "{{ uberspace_nextcloud__document_root }}"
     creates: "{{ uberspace_nextcloud__document_root }}/index.php"
-    remote_src: True
+    remote_src: true
     extra_opts:
       - --strip-components=1
 
@@ -98,19 +97,21 @@
     creates: "{{ uberspace_nextcloud__document_root }}/config/config.php"
   no_log: true
   register: uberspace_nextcloud__install_result
-  failed_when: uberspace_nextcloud__install_result.changed and (uberspace_nextcloud__install_result.rc != 0 or uberspace_nextcloud__install_result.stdout != "Nextcloud was successfully installed")
+  failed_when: uberspace_nextcloud__install_result.changed and
+              ( uberspace_nextcloud__install_result.rc != 0 or
+                uberspace_nextcloud__install_result.stdout != "Nextcloud was successfully installed")
 
 - name: Get current trusted domain.
   ansible.builtin.command:
     cmd: php occ config:system:get trusted_domains
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__trusted_domains_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__trusted_domains_result.rc != 0
 
 - name: Set list of trusted domains.
   ansible.builtin.command:
-    cmd: php occ config:system:set trusted_domains 0 --value={{ uberspace_nextcloud__trusted_domain }}
+    cmd: "php occ config:system:set trusted_domains 0 --value={{ uberspace_nextcloud__trusted_domain }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__trusted_domains_result.stdout != uberspace_nextcloud__trusted_domain
 
@@ -119,12 +120,12 @@
     cmd: php occ config:system:get overwrite.cli.url
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__cli_url_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__cli_url_result.rc != 0
 
 - name: Set CLI URL in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set overwrite.cli.url --value=https://{{ uberspace_nextcloud__trusted_domain }}
+    cmd: "php occ config:system:set overwrite.cli.url --value=https://{{ uberspace_nextcloud__trusted_domain }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__cli_url_result.stdout != "https://"+uberspace_nextcloud__trusted_domain
 
@@ -133,8 +134,8 @@
     path: "{{ ansible_env.HOME }}/logs/{{ item }}"
     src: "{{ uberspace_nextcloud__data_dir }}/{{ item }}"
     state: link
-    force: True # updater.log may not exist, but the link can be created
-    follow: False # updater.log may not exist, but the link can be created
+    force: true # updater.log may not exist, but the link can be created
+    follow: false # updater.log may not exist, but the link can be created
   loop:
     - nextcloud.log
     - updater.log
@@ -144,12 +145,12 @@
     cmd: php occ config:system:get mail_domain
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__mail_domain_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__mail_domain_result.rc not in [0,1]
 
 - name: Set mail domain in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set mail_domain --value={{ uberspace_nextcloud__mail_domain }}
+    cmd: "php occ config:system:set mail_domain --value={{ uberspace_nextcloud__mail_domain }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__mail_domain_result.stdout != uberspace_nextcloud__mail_domain
 
@@ -158,12 +159,12 @@
     cmd: php occ config:system:get mail_from_address
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__mail_from_address_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__mail_from_address_result.rc not in [0,1]
 
 - name: Set mail from address in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set mail_from_address --value={{ uberspace_nextcloud__mail_from_address }}
+    cmd: "php occ config:system:set mail_from_address --value={{ uberspace_nextcloud__mail_from_address }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__mail_from_address_result.stdout != uberspace_nextcloud__mail_from_address
 
@@ -172,12 +173,12 @@
     cmd: php occ config:system:get mail_smtpmode
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__mail_smtpmode_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__mail_smtpmode_result.rc not in [0,1]
 
 - name: Set mail smtpmode in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set mail_smtpmode --value={{ uberspace_nextcloud__mail_smtpmode }}
+    cmd: "php occ config:system:set mail_smtpmode --value={{ uberspace_nextcloud__mail_smtpmode }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__mail_smtpmode_result.stdout != uberspace_nextcloud__mail_smtpmode
 
@@ -186,23 +187,23 @@
     cmd: php occ config:system:get mail_sendmailmode
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__mail_sendmailmode_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__mail_sendmailmode_result.rc not in [0,1]
   when: uberspace_nextcloud__mail_smtpmode == "sendmail"
 
 - name: Set mail sendmailmode in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set mail_sendmailmode --value={{ uberspace_nextcloud__mail_sendmailmode }}
+    cmd: "php occ config:system:set mail_sendmailmode --value={{ uberspace_nextcloud__mail_sendmailmode }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__mail_smtpmode == "sendmail" and
-        uberspace_nextcloud__mail_sendmailmode_result.stdout != uberspace_nextcloud__mail_sendmailmode
+    uberspace_nextcloud__mail_sendmailmode_result.stdout != uberspace_nextcloud__mail_sendmailmode
 
 - name: Get Nextcloud Rewrite Base.
   ansible.builtin.command:
     cmd: php occ config:system:get htaccess.RewriteBase
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__htaccess_rewritebase_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__htaccess_rewritebase_result.rc not in [0,1]
 
 - name: Set RewriteBase in Nextcloud.
@@ -210,7 +211,7 @@
     cmd: php occ config:system:set htaccess.RewriteBase --value='/'
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__url_rewriting and
-        uberspace_nextcloud__htaccess_rewritebase_result.rc == 1
+    uberspace_nextcloud__htaccess_rewritebase_result.rc == 1
   notify: Rewrite Nextcloud htaccess.
 
 - name: Unset RewriteBase in Nextcloud.
@@ -218,13 +219,13 @@
     cmd: php occ config:system:delete htaccess.RewriteBase
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: not uberspace_nextcloud__url_rewriting and
-        uberspace_nextcloud__htaccess_rewritebase_result.rc == 0
+    uberspace_nextcloud__htaccess_rewritebase_result.rc == 0
   notify: Rewrite Nextcloud htaccess.
 
 - name: Create Cronjob.
   ansible.builtin.cron:
     job: "php -f {{ uberspace_nextcloud__document_root }}/cron.php > {{ ansible_env.HOME }}/logs/nextcloud-cron.log 2>&1"
-    name: "Run Nextcloud jobs"
+    name: Run Nextcloud jobs
     minute: "*/5"
     state: present
 
@@ -235,7 +236,7 @@
     positional_args:
       - backgroundjobs_mode
   register: uberspace_backgroundjob_mode
-  changed_when: False
+  changed_when: false
 
 - name: Configure nextcloud to use cron for background tasks.
   ansible.builtin.command:
@@ -248,12 +249,12 @@
     cmd: php occ config:system:get default_phone_region
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__default_phone_region_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__default_phone_region_result.rc not in [0,1]
 
 - name: Set default phone region in Nextcloud.
   ansible.builtin.command:
-    cmd: php occ config:system:set default_phone_region --value={{ uberspace_nextcloud__default_phone_region }}
+    cmd: "php occ config:system:set default_phone_region --value={{ uberspace_nextcloud__default_phone_region }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: (uberspace_nextcloud__default_phone_region_result.stdout | default()) != uberspace_nextcloud__default_phone_region
 
@@ -262,7 +263,7 @@
     cmd: php occ config:system:get memcache.local
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__memcache_local_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__memcache_local_result.rc not in [0,1]
 
 - name: Set memcache setting in Nextcloud.
@@ -283,4 +284,4 @@
     dest: ~/bin/nextcloud-update
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0755
+    mode: "0755"

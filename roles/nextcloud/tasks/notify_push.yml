@@ -1,5 +1,4 @@
 ---
-
 - name: Install Client Push app in Nextcloud.
   ansible.builtin.command:
     cmd: php occ app:install notify_push
@@ -9,7 +8,7 @@
 - name: Make Client Push executable.
   ansible.builtin.file:
     path: "{{ uberspace_nextcloud__document_root }}/apps/notify_push/bin/x86_64/notify_push"
-    mode: "a+x"
+    mode: a+x
 
 - name: Link Client Push into PATH.
   ansible.builtin.file:
@@ -19,7 +18,7 @@
 
 - name: Create Client Push supervisord configuration.
   ansible.builtin.template:
-    src: "templates/notify_push.supervisord.ini.j2"
+    src: templates/notify_push.supervisord.ini.j2
     dest: "{{ ansible_env.HOME }}/etc/services.d/notify_push.ini"
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
@@ -34,12 +33,12 @@
   ansible.builtin.command:
     cmd: uberspace web backend list
   register: uberspace_web_backend_list_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_web_backend_list_result.rc not in [0,1]
 
 - name: Configure web backend for Client Push.
   ansible.builtin.command:
-    cmd: uberspace web backend set {{ uberspace_nextcloud__trusted_domain }}/push --http --port 7867
+    cmd: "uberspace web backend set {{ uberspace_nextcloud__trusted_domain }}/push --http --port 7867"
   when: uberspace_web_backend_list_result.stdout is not regex("^" ~ uberspace_nextcloud__trusted_domain ~ "/push http:7867")
 
 - name: Get current trusted proxies configuration.
@@ -47,12 +46,12 @@
     cmd: php occ config:system:get trusted_proxies
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__trusted_proxies_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__trusted_proxies_result.rc not in [0,1]
 
 - name: Set trusted proxies configuration.
   ansible.builtin.command:
-    cmd: php occ config:system:set trusted_proxies 0 --value="{{ ansible_default_ipv4.address }}"
+    cmd: "php occ config:system:set trusted_proxies 0 --value='{{ ansible_default_ipv4.address }}'"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: uberspace_nextcloud__trusted_proxies_result.stdout is not match(ansible_default_ipv4.address, multiline=True)
 
@@ -61,12 +60,12 @@
     cmd: php occ config:app:get notify_push base_endpoint
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: notify_push_config_base_endpoint
-  changed_when: False
+  changed_when: false
   failed_when: notify_push_config_base_endpoint.rc not in [0,1]
 
 - name: Setup Client Push.
   ansible.builtin.command:
-    cmd: php occ notify_push:setup https://{{ uberspace_nextcloud__trusted_domain }}/push
+    cmd: "php occ notify_push:setup https://{{ uberspace_nextcloud__trusted_domain }}/push"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: notify_push_setup
   when: notify_push_config_base_endpoint.stdout != "https://" + uberspace_nextcloud__trusted_domain +"/push"

@@ -1,5 +1,4 @@
 ---
-
 - name: Configure redis via role.
   include_role:
     role: redis
@@ -9,12 +8,12 @@
     cmd: php occ config:system:get redis host
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__redis_host_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__redis_host_result.rc not in [0,1]
 
 - name: Configure redis host.
   ansible.builtin.command:
-    cmd: php occ config:system:set redis host --value="{{ ansible_env.HOME }}/.redis/sock"
+    cmd: "php occ config:system:set redis host --value='{{ ansible_env.HOME }}/.redis/sock'"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: (uberspace_nextcloud__redis_host_result.stdout | default()) != ansible_env.HOME ~ '/.redis/sock'
 
@@ -23,7 +22,7 @@
     cmd: php occ config:system:get redis port
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__redis_port_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__redis_port_result.rc not in [0,1]
 
 - name: Configure redis port.
@@ -37,12 +36,12 @@
     cmd: php occ config:system:get redis timeout
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__redis_timeout_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__redis_timeout_result.rc not in [0,1]
 
 - name: Configure redis timeout.
   ansible.builtin.command:
-    cmd: php occ config:system:set redis timeout --value={{ uberspace_nextcloud__redis_timeout }}
+    cmd: "php occ config:system:set redis timeout --value={{ uberspace_nextcloud__redis_timeout }}"
     chdir: "{{ uberspace_nextcloud__document_root }}"
   when: (uberspace_nextcloud__redis_timeout_result.stdout | default() | float) != uberspace_nextcloud__redis_timeout
 
@@ -51,7 +50,7 @@
     cmd: php occ config:system:get filelocking.enabled
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__filelocking_enabled_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__filelocking_enabled_result.rc not in [0,1]
 
 - name: Configure Nextcloud filelocking
@@ -65,7 +64,7 @@
     cmd: php occ config:system:get memcache.locking
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__memcache_locking_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__memcache_locking_result.rc not in [0,1]
 
 - name: Configure Nextcloud memcache locking.
@@ -79,7 +78,7 @@
     cmd: php occ config:system:get memcache.distributed
     chdir: "{{ uberspace_nextcloud__document_root }}"
   register: uberspace_nextcloud__memcache_distributed_result
-  changed_when: False
+  changed_when: false
   failed_when: uberspace_nextcloud__memcache_distributed_result.rc not in [0,1]
 
 - name: Configure Nextcloud memcache distributed.

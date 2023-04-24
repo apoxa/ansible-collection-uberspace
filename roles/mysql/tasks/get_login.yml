@@ -1,5 +1,4 @@
 ---
-
 - name: Execute my_print_defaults.
   ansible.builtin.command:
     cmd: my_print_defaults client
@@ -12,7 +11,7 @@
   ansible.builtin.set_fact:
     uberspace_mysql_user: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
   vars:
-    regex: "--user=(.*)"
+    regex: --user=(.*)
   failed_when: not uberspace_mysql_user
   no_log: true
 
@@ -20,6 +19,6 @@
   ansible.builtin.set_fact:
     uberspace_mysql_password: "{{ my_defaults_result.stdout | regex_search(regex, '\\1') | first }}"
   vars:
-    regex: "--password=(.*)"
+    regex: --password=(.*)
   failed_when: not uberspace_mysql_password
   no_log: true

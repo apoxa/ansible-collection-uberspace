@@ -1,5 +1,4 @@
 ---
-
 - name: Get MySQL password.
   include_role:
     name: mysql

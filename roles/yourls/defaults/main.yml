@@ -1,8 +1,7 @@
 ---
-
 uberspace_yourls__document_root: "/var/www/virtual/{{ ansible_facts.user_id }}/html"
-uberspace_yourls__version: "1.8.2"
-uberspace_yourls__release_url: "https://github.com/YOURLS/YOURLS/tarball/1.8.2"
+uberspace_yourls__version: 1.8.2
+uberspace_yourls__release_url: "https://github.com/YOURLS/YOURLS/tarball/{{ uberspace_yourls__version }}"
 uberspace_yourls__database_name: "{{ ansible_facts.user_id }}_yourls"
 uberspace_yourls__domain: "{{ ansible_facts.user_id }}.uber.space"
 # Change this setting to use a translation file for your language, instead of the default English.
@@ -36,12 +35,11 @@ uberspace_yourls__url_shortening_method: 36
 # which is slightly less secure than YOURLS encryption, but still better than plain text.
 uberspace_yourls__users:
   - username: "{{ ansible_facts.user_id }}"
-    password: "PleaseChangeMe"
+    password: PleaseChangeMe
 
 # Debug mode to output some internal information
 # Default is false for live site. Enable when coding or before submitting a new issue
 uberspace_yourls__debug: false
-
 
 # Install Pseudonymize Plugin
 # By default YOURLS logs every visit on a shortlink with the complete IP address of the visitor.

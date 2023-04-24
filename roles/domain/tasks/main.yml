@@ -1,16 +1,15 @@
 ---
-
 - name: Set fact with current configured domains.
   ansible.builtin.set_fact:
     uberspace_configured_domains: "{{ ansible_local.users[ansible_user_id].domains | dict2items | map(attribute='key') }}"
 
 - name: Add domains to uberspace.
-  ansible.builtin.shell: uberspace web domain add $(idn {{ item.domain }})
+  ansible.builtin.shell: "uberspace web domain add $(idn {{ item.domain }})"
   when: item.domain not in uberspace_configured_domains
   loop: "{{ uberspace_domain__domains | selectattr('state', 'equalto', 'present') }}"
 
 - name: Remove domains from uberspace.
-  ansible.builtin.shell: uberspace web domain del $(idn {{ item.domain }})
+  ansible.builtin.shell: "uberspace web domain del $(idn {{ item.domain }})"
   when: item.domain in uberspace_configured_domains
   loop: "{{ uberspace_domain__domains | selectattr('state', 'equalto', 'absent') }}"
 

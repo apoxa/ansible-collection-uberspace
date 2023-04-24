@@ -1,12 +1,11 @@
 ---
-
 - name: Ensure $HOME/.redis exists.
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.redis"
     state: directory
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Create redis configuration.
   ansible.builtin.template:
@@ -14,7 +13,7 @@
     dest: "{{ ansible_env.HOME }}/.redis/conf"
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
-    mode: 0644
+    mode: "0644"
 
 - name: Create redis daemon configuration.
   ansible.builtin.template:
@@ -22,7 +21,7 @@
     dest: "{{ ansible_env.HOME }}/etc/services.d/redis.ini"
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
-    mode: 0644
+    mode: "0644"
 
 - name: Start redis daemon.
   community.general.supervisorctl:

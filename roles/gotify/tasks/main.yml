@@ -1,11 +1,11 @@
 ---
-
 - name: Create backend service.
   ansible.builtin.command:
-    cmd: uberspace web backend set {{ uberspace_gotify__backend_path }} --http --port {{ uberspace_gotify__conf_port }}  --remove-prefix
-  when: ( uberspace_gotify__backend_path is match("/") and uberspace_gotify__backend_path not in ansible_local.users[ansible_facts.user_id].global_backends )
+    cmd: "uberspace web backend set {{ uberspace_gotify__backend_path }} --http --port {{ uberspace_gotify__conf_port }}  --remove-prefix"
+  when:
+    ( uberspace_gotify__backend_path is match("/") and uberspace_gotify__backend_path not in ansible_local.users[ansible_facts.user_id].global_backends )
     or ( "/" + uberspace_gotify__backend_path.split("/")[1]
-      not in ansible_local.users[ansible_user_id].domains[uberspace_gotify__backend_path.split("/")[0]].web.backends | default({}) )
+    not in ansible_local.users[ansible_user_id].domains[uberspace_gotify__backend_path.split("/")[0]].web.backends | default({}) )
 
 - name: Create installation directory.
   ansible.builtin.file:
@@ -13,7 +13,7 @@
     state: directory
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_id }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Download and extract gotify.
   ansible.builtin.unarchive:
@@ -28,7 +28,7 @@
     dest: "{{ ansible_env.HOME }}/etc/services.d/gotify.ini"
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_id }}"
-    mode: 0644
+    mode: "0644"
   notify: Reload gotify.
 
 - name: Ensure gotify is running.

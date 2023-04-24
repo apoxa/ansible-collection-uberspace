@@ -1,5 +1,4 @@
 ---
-
 - name: Get MySQL password.
   include_role:
     name: mysql
@@ -17,7 +16,7 @@
 
 - name: Configure via .env file.
   ansible.builtin.template:
-    src: "templates/dot.env.j2"
+    src: templates/dot.env.j2
     dest: "{{ uberspace_wordpress__root }}/.env"
     owner: "{{ ansible_facts.user_id }}"
     group: "{{ ansible_facts.user_id }}"
