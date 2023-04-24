@@ -1,3 +1,4 @@
+---
 namespace: apoxa
 name: uberspace
 version: 0.0.1
@@ -9,17 +10,18 @@ authors:
 description: Manage Uberspace with their tools.
 
 license:
-- BSD-3-Clause
+  - BSD-3-Clause
 
-tags: ['uberspace']
+tags:
+  - uberspace
 
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
 dependencies:
-  community.mysql: '>=2.1.0'
-  community.general: '>=4.2.0'
+  community.mysql: ">=2.1.0"
+  community.general: ">=4.2.0"
 
 repository: https://github.com/apoxa/ansible-collection-uberspace
 issues: https://github.com/apoxa/ansible-collection-uberspace/issues
