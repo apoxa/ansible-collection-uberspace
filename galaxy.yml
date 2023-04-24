@@ -21,8 +21,7 @@ dependencies:
   community.mysql: '>=2.1.0'
   community.general: '>=4.2.0'
 
-repository: https://github.com/apoxa/ansible-uberspace
-issues: https://github.com/apoxa/ansible-uberspace/issues
+repository: https://github.com/apoxa/ansible-collection-uberspace
+issues: https://github.com/apoxa/ansible-collection-uberspace/issues
 
 build_ignore: []
-
