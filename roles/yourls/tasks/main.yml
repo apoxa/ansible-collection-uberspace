@@ -28,7 +28,7 @@
     group: "{{ ansible_facts.user_id }}"
     mode: "0644"
 
-- name: Install Pseudonymize plugin. # noqa git-latest
+- name: Install Pseudonymize plugin. # noqa latest[git]
   ansible.builtin.git:
     repo: "{{ uberspace_yourls__pseudonymize_repo }}"
     dest: "{{ uberspace_yourls__document_root }}/user/plugins/yourls-pseudonymize"
