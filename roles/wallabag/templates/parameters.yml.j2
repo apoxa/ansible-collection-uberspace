@@ -12,6 +12,7 @@ parameters:
     database_charset: utf8mb4
     domain_name: 'https://{{ uberspace_wallabag__domain_name }}'
     server_name: {{ uberspace_wallabag__domain_name }}
+{% if uberspace_wallabag__repository_version is version('2.6.1', '<') %}
     mailer_transport: smtp
     mailer_user: {{ uberspace_wallabag__mailer_user }}
     mailer_password: '{{ uberspace_wallabag__mailer_password }}'
@@ -19,6 +20,9 @@ parameters:
     mailer_port: {{ uberspace_wallabag__mailer_port }}
     mailer_encryption: null
     mailer_auth_mode: null
+{% else %}
+    mailer_dsn: smtps://{{ uberspace_wallabag__mailer_user }}:{{ uberspace_wallabag__mailer_password }}@{{ uberspace_wallabag__mailer_host }}:{{ uberspace_wallabag__mailer_port }}
+{% endif %}
     locale: {{ uberspace_wallabag__locale }}
     secret: {{ uberspace_wallabag__secret }}
     twofactor_auth: {{ uberspace_wallabag__twofactor_auth | lower }}
